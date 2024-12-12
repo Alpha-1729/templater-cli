@@ -11,5 +11,8 @@
         "latest": "",
         "pre-run-command": ""
     },
-    "run-command": ""
+    "run-command": "",
+    "copy-previous": [
+        "main/roar"
+    ]
 }

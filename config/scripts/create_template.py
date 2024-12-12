@@ -19,6 +19,8 @@ latest_section = config_data["section"]["latest"]
 
 pre_run_command = config_data["template"]["pre-run-command"]
 
+copy_previous = config_data["copy-previous"]
+
 template_prefix = config_data["template"]["prefix"]
 template_prefix = f"-{template_prefix}" if len(template_prefix.strip()) > 0 else ""
 
@@ -30,9 +32,7 @@ template_name = "_".join(template_name)
 
 topic_name = template_name.replace("_", " ")
 
-template_dir_name = "{}{}-{}".format(
-    str(template_number).zfill(3), template_prefix, template_name
-)
+template_dir_name = "{}{}-{}".format(str(template_number).zfill(3), template_prefix, template_name)
 destination_path = os.path.join(os.getcwd(), latest_section, template_dir_name)
 
 # Determine the template path: Use section-specific template if it exists, otherwise use the default.
@@ -40,8 +40,23 @@ section_template_path = os.path.join(os.getcwd(), latest_section, "templates")
 default_template_path = os.path.join(os.getcwd(), "config", "templates")
 template_path = section_template_path if os.path.exists(section_template_path) else default_template_path
 
-# Moving all the content from the selected template folder to the destination.
 shutil.copytree(template_path, destination_path)
+
+# Loop through copy-previous folders to copy from the previous template
+previous_template_path = os.path.join(os.getcwd(), latest_section, config_data["template"]["latest"])
+
+for folder in copy_previous:
+    delete_folder_path = os.path.join(destination_path, folder)
+    if os.path.isdir(delete_folder_path):
+        shutil.rmtree(delete_folder_path)
+
+for folder in copy_previous:
+    folder_from_previous = os.path.join(previous_template_path, folder)
+    folder_to_copy = os.path.join(destination_path, folder)
+
+    if os.path.isdir(folder_from_previous):
+        # If the folder exists in the previous template, copy it to the new destination
+        shutil.copytree(folder_from_previous, folder_to_copy)
 
 # Looping through destination directory and replacing placeholders in scripts.
 for root_dir, sub_dir, file_list in os.walk(destination_path):
